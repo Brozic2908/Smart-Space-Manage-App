@@ -1,10 +1,10 @@
 import { View, Text } from "react-native";
 import React from "react";
 
-export default function SignIn() {
+export default function index() {
   return (
     <View>
-      <Text>SignIn</Text>
+      <Text>index roomid</Text>
     </View>
   );
 }
