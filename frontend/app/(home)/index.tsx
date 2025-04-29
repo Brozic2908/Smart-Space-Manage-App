@@ -2,8 +2,6 @@ import { View, Text, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import { FlatList } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
 
 // Mock data phòng học
@@ -28,7 +26,7 @@ export default function HomeScreen() {
       : rooms.filter((room) => room.type === activeTab);
 
   const navigateToRoomDetails = (roomId: string) => {
-    router.push(`/(home)/${roomId}`);
+    router.push(`/(room)/${roomId}`);
   };
 
   const renderRoomCard = ({ item }: any) => (
@@ -46,9 +44,6 @@ export default function HomeScreen() {
         <Text className="font-medium text-base">{item.id}</Text>
         <Text className="text-sm text-gray-500 mt-0.5">{item.type}</Text>
       </View>
-      {/* <View className=""> */}
-      {/* <Text className="text-blue-500 font-medium">Details</Text> */}
-      {/* </View> */}
       <Text
         className={`font-medium ${
           item.available ? "text-success" : "text-danger"
