@@ -24,7 +24,7 @@ export const useRooms = (roomType?: string) => {
 
         setRooms(filteredRooms);
         setLoading(false);
-      }, 500);
+      }, 400);
     } catch (err) {
       setError("Failed to fetch rooms");
       setLoading(false);
@@ -49,7 +49,7 @@ export const useRoom = (roomId: string) => {
         setRoom(foundRoom);
         setTimeSlots(timeSlotsData);
         setLoading(false);
-      }, 500);
+      }, 400);
     } catch (err) {
       setError("Failed to fetch room details");
       setLoading(false);

@@ -34,7 +34,7 @@ const RoomCard = ({ id, type, available }: RoomCardProps) => {
       </View>
       <Text
         className={`font-medium ${
-          available ? "text-green-500" : "text-red-500"
+          available ? "text-green-600" : "text-red-700"
         }`}
       >
         {available ? "có sẵn" : "Đã sử dụng"}

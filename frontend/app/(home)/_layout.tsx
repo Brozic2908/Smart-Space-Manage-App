@@ -26,9 +26,9 @@ export default function HomeLayout() {
         tabBarActiveTintColor: "#2563eb",
         tabBarInactiveTintColor: "#6B7280",
         tabBarStyle: {
-          height: 60,
+          height: 70,
           paddingBottom: 5,
-          paddingTop: 8,
+          paddingTop: 10,
         },
         headerShown: false,
       }}
@@ -57,7 +57,7 @@ export default function HomeLayout() {
           tabBarButton: ({ onPress }) => (
             <TouchableOpacity
               onPress={onPress}
-              activeOpacity={0.8}
+              activeOpacity={0.9}
               style={{
                 top: -16,
                 justifyContent: "center",

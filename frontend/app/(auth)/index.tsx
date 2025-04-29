@@ -39,7 +39,7 @@ export default function signIn() {
                 <Image
                   source={require("../../assets/images/logoBK.png")}
                   className="w-full h-full"
-                  resizeMode="contain"
+                  resizeMode="cover"
                 />
               </View>
               <Text className="text-3xl font-bold text-gray-800">
