@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from app.db.session import engine
 from app.db.base import Base
-from app.api import auth_route, booking_route, checkin_route
+from app.api import auth_route, booking_route, checkin_route, room_route
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,3 +22,4 @@ async def say_hello(name: str):
 app.include_router(auth_route.router, tags=["auth"])
 app.include_router(booking_route.router, tags=["booking"])
 app.include_router(checkin_route.router, tags=["checkin"])
+app.include_router(room_route.router, tags=["rooms"])
