@@ -27,34 +27,36 @@ export default function RoomDetail({ room, loading }: RoomDetailProps) {
   }
 
   return (
-    <View className="bg-white p-4 rounded-lg shadow-sm mb-4">
+    <View className="p-4">
+      <View className="flex-row justify-between p-2">
+        <Text className="text-2xl font-bold">{room.id}</Text>
+        <Text className="text-gray-600 text-xl font-medium">{room.type}</Text>
+      </View>
       <View className="flex-row items-center mb-4">
-        <View className="w-14 h-14 bg-blue-100 rounded-md justify-center">
-          <Ionicons name="business-outline" size={26} color={"#0050B3"} />
-        </View>
-        <View className="ml-3">
-          <Text className="text-xl font-bold">{room.id}</Text>
-          <Text className="text-gray-500">{room.type}</Text>
+        <View className="w-full h-52 bg-gray-100 rounded-lg justify-center items-center">
+          <Ionicons name="business-outline" size={100} color={"#0050B3"} />
         </View>
       </View>
 
-      <View className="flex-row flex-wrap">
+      <View className="flex-row flex-wrap p-2">
         <View className="w-1/2 mb-2">
           <Text className="text-gray-500">Tòa nhà</Text>
-          <Text className="font-medium">{room.building || "N/A"}</Text>
+          <Text className="font-medium text-lg">{room.building || "N/A"}</Text>
         </View>
         <View className="w-1/2 mb-2">
           <Text className="text-gray-500">Tầng</Text>
-          <Text className="font-medium">{room.floor || "N/A"}</Text>
+          <Text className="font-medium text-lg">{room.floor || "N/A"}</Text>
         </View>
         <View className="w-1/2 mb-2">
           <Text className="text-gray-500">Sức chứa</Text>
-          <Text className="font-medium">{room.capacity || "N/A"} người</Text>
+          <Text className="font-medium text-lg">
+            {room.capacity || "N/A"} người
+          </Text>
         </View>
         <View className="w-1/2 mb-2">
           <Text className="text-gray-500">Trạng thái</Text>
           <Text
-            className={`font-medium ${
+            className={`font-medium text-lg ${
               room.available ? "text-green-500" : "text-red-500"
             }`}
           >

@@ -23,22 +23,27 @@ const RoomCard = ({ id, type, available }: RoomCardProps) => {
         !available ? "opacity-70" : ""
       }`}
       onPress={navigateToRoomDetails}
-      disabled={!available}
     >
       <View className="w-14 h-14 bg-blue-100 rounded-md justify-center items-center">
         <Ionicons name="business-outline" size={26} color="#0050B3" />
       </View>
       <View className="flex-1 ml-3">
-        <Text className="font-medium text-base">{id}</Text>
+        <Text className="font-medium text-lg">{id}</Text>
         <Text className="text-sm text-gray-500 mt-0.5">{type}</Text>
       </View>
-      <Text
-        className={`font-medium ${
-          available ? "text-green-600" : "text-red-700"
+      <View
+        className={`rounded-full py-1 px-2 ${
+          available ? "bg-green-100" : "bg-red-100"
         }`}
       >
-        {available ? "có sẵn" : "Đã sử dụng"}
-      </Text>
+        <Text
+          className={`font-medium ${
+            available ? "text-green-600" : "text-red-700"
+          }`}
+        >
+          {available ? "có sẵn" : "Đã sử dụng"}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 };

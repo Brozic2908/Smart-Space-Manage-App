@@ -1,4 +1,10 @@
-import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import React, { useState } from "react";
 import { FlatList } from "react-native-gesture-handler";
 import RoomCard from "@/components/ui/RoomCard";
@@ -14,6 +20,12 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-blue-50">
+      <Image
+        source={require("../../assets/images/bg.png")}
+        className="absolute opacity-70"
+        style={{ width: "100%" }}
+        resizeMode="cover"
+      />
       <View className="mt-24 pb-6">
         <Text className="text-center font-bold text-primary text-2xl">
           Đặt phòng học
@@ -27,13 +39,13 @@ export default function HomeScreen() {
             className={`p-3 pb-1 ${
               activeTab === tab
                 ? "border-b-[3px] border-primary"
-                : "border-b-[1px] border-gray-300"
+                : "border-b-[1px] border-gray-400"
             }`}
             onPress={() => setActiveTab(tab)}
           >
             <Text
               className={`text-lg ${
-                activeTab === tab ? "text-primary font-medium" : "text-gray-300"
+                activeTab === tab ? "text-primary font-medium" : "text-gray-400"
               }`}
             >
               {tab}

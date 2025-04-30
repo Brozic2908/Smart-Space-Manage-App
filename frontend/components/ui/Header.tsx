@@ -1,8 +1,8 @@
 // components/ui/Header.tsx
 import { View, Text, TouchableOpacity } from "react-native";
 import React from "react";
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 interface HeaderProps {
   title: string;
@@ -11,12 +11,12 @@ interface HeaderProps {
   onRightIconPress?: () => void;
 }
 
-export default function Header({
+const Header = ({
   title,
   showBackButton = false,
   rightIcon,
   onRightIconPress,
-}: HeaderProps) {
+}: HeaderProps) => {
   const router = useRouter();
 
   return (
@@ -24,7 +24,7 @@ export default function Header({
       <View className="flex-row items-center">
         {showBackButton && (
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
-            <Ionicons name="arrow-back" size={24} color={"#333"} />
+            <Ionicons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
         )}
         <Text className="text-lg font-bold text-gray-800">{title}</Text>
@@ -37,4 +37,6 @@ export default function Header({
       )}
     </View>
   );
-}
+};
+
+export default Header;

@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
 import {
+  Image,
   Platform,
   Touchable,
   TouchableHighlight,
