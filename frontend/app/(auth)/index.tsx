@@ -87,15 +87,13 @@ export default function signIn() {
                     onPress={() => setSecureTextEntry(!secureTextEntry)}
                   >
                     <Text>
-                      {secureTextEntry ? (
-                        <Ionicons name="eye-outline" size={20} color="black" />
-                      ) : (
-                        <Ionicons
-                          name="eye-off-outline"
-                          size={20}
-                          color="black"
-                        />
-                      )}
+                      <Ionicons
+                        name={`${
+                          secureTextEntry ? "eye-off-outline" : "eye-outline"
+                        }`}
+                        size={20}
+                        color="black"
+                      />
                     </Text>
                   </TouchableOpacity>
                 </View>

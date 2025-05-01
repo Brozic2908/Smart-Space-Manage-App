@@ -58,7 +58,7 @@ export default function HomeLayout() {
           tabBarButton: ({ onPress }) => (
             <TouchableOpacity
               onPress={onPress}
-              activeOpacity={0.9}
+              activeOpacity={1}
               style={{
                 top: -16,
                 justifyContent: "center",
@@ -81,7 +81,7 @@ export default function HomeLayout() {
                   width: 64,
                   height: 64,
                   borderRadius: 35,
-                  backgroundColor: "#2563eb", // Tailwind blue-600
+                  backgroundColor: "#073E7E", // Tailwind blue-600
                   justifyContent: "center",
                   alignItems: "center",
                 }}
