@@ -35,11 +35,11 @@ export default function signIn() {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View className="flex-1 justify-center px-6 py-5">
             <View className="items-center mt-[-4rem]">
-              <View className="w-24 h-24 mb-2">
+              <View className="w-52 h-52">
                 <Image
                   source={require("../../assets/images/logoBK.png")}
                   className="w-full h-full"
-                  resizeMode="contain"
+                  resizeMode="cover"
                 />
               </View>
               <Text className="text-3xl font-bold text-gray-800">
@@ -87,15 +87,13 @@ export default function signIn() {
                     onPress={() => setSecureTextEntry(!secureTextEntry)}
                   >
                     <Text>
-                      {secureTextEntry ? (
-                        <Ionicons name="eye-outline" size={20} color="black" />
-                      ) : (
-                        <Ionicons
-                          name="eye-off-outline"
-                          size={20}
-                          color="black"
-                        />
-                      )}
+                      <Ionicons
+                        name={`${
+                          secureTextEntry ? "eye-off-outline" : "eye-outline"
+                        }`}
+                        size={20}
+                        color="black"
+                      />
                     </Text>
                   </TouchableOpacity>
                 </View>
