@@ -2,10 +2,8 @@
 export type Room = {
   id: string;
   type: "Mentoring" | "Group" | "Personal";
-  available: boolean;
-  building?: string;
-  floor?: string;
-  capacity?: number;
+  status: string;
+  location?: string;
 };
 
 export type TimeSlot = {
@@ -20,66 +18,50 @@ export const rooms: Room[] = [
   {
     id: "H6-901",
     type: "Mentoring",
-    available: true,
-    building: "H6",
-    floor: "9",
-    capacity: 10,
+    status: "available",
+    location: "H6",
   },
   {
     id: "H8-301",
     type: "Group",
-    available: true,
-    building: "H8",
-    floor: "3",
-    capacity: 20,
+    status: "available",
+    location: "H8",
   },
   {
     id: "H3-806",
     type: "Group",
-    available: true,
-    building: "H3",
-    floor: "8",
-    capacity: 15,
+    status: "available",
+    location: "H3",
   },
   {
     id: "H6-902",
     type: "Mentoring",
-    available: true,
-    building: "H6",
-    floor: "9",
-    capacity: 8,
+    status: "in_use",
+    location: "H6",
   },
   {
     id: "H8-305",
     type: "Group",
-    available: true,
-    building: "H8",
-    floor: "3",
-    capacity: 25,
+    status: "available",
+    location: "H8",
   },
   {
     id: "H3-906",
     type: "Group",
-    available: true,
-    building: "H3",
-    floor: "9",
-    capacity: 15,
+    status: "maintenance",
+    location: "H3",
   },
   {
     id: "H2-609",
     type: "Personal",
-    available: false,
-    building: "H2",
-    floor: "6",
-    capacity: 4,
+    status: "available",
+    location: "H2",
   },
   {
     id: "H1-001",
     type: "Personal",
-    available: true,
-    building: "H1",
-    floor: "0",
-    capacity: 2,
+    status: "available",
+    location: "H1",
   },
 ];
 

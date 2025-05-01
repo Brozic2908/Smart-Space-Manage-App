@@ -7,10 +7,10 @@ import { Ionicons } from "@expo/vector-icons";
 type RoomCardProps = {
   id: string;
   type: string;
-  available: boolean;
+  status: string;
 };
 
-const RoomCard = ({ id, type, available }: RoomCardProps) => {
+const RoomCard = ({ id, type, status }: RoomCardProps) => {
   const router = useRouter();
 
   const navigateToRoomDetails = () => {
@@ -20,7 +20,7 @@ const RoomCard = ({ id, type, available }: RoomCardProps) => {
   return (
     <TouchableOpacity
       className={`flex-row items-center bg-white rounded-lg p-4 mb-3 shadow-sm ${
-        !available ? "opacity-70" : ""
+        !status ? "opacity-70" : ""
       }`}
       onPress={navigateToRoomDetails}
     >
@@ -33,15 +33,27 @@ const RoomCard = ({ id, type, available }: RoomCardProps) => {
       </View>
       <View
         className={`rounded-full py-1 px-2 ${
-          available ? "bg-green-100" : "bg-red-100"
+          status === "available"
+            ? "bg-green-100"
+            : status === "in_use"
+            ? "bg-red-100"
+            : "bg-yellow-100"
         }`}
       >
         <Text
           className={`font-medium ${
-            available ? "text-green-600" : "text-red-700"
+            status === "available"
+              ? "text-green-600"
+              : status === "in_use"
+              ? "text-red-700"
+              : "text-yellow-700"
           }`}
         >
-          {available ? "có sẵn" : "Đã sử dụng"}
+          {status === "available"
+            ? "có sẵn"
+            : status === "in_use"
+            ? "Đã sử dụng"
+            : "Đang bảo trì"}
         </Text>
       </View>
     </TouchableOpacity>

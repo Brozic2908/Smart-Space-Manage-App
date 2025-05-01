@@ -16,8 +16,9 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: "#f5f5f5" },
         }}
       >
-        <Stack.Screen name="(home)" options={{ headerShown: false }} />
+        <Stack.Screen name="(management)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        {/* <Stack.Screen name="(home)" options={{ headerShown: false }} /> */}
       </Stack>
     </GestureHandlerRootView>
   );

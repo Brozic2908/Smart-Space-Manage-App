@@ -212,7 +212,7 @@ export default function RoomDetailScreen() {
               </TouchableWithoutFeedback>
             </Modal>
 
-            {room.available ? (
+            {room.status === "available" ? (
               <Button
                 title="Đặt phòng ngay"
                 onPress={handleBookRoom}
@@ -251,9 +251,6 @@ export default function RoomDetailScreen() {
                         </Text>
                         <Text className="text-gray-700 mb-1">
                           Type: {room?.type}
-                        </Text>
-                        <Text className="text-gray-700 mb-1">
-                          Sức chứa: {room?.capacity}
                         </Text>
                         <Text className="text-gray-700">
                           Thời gian: {selectedTime}

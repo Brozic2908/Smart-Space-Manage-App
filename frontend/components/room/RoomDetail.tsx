@@ -40,27 +40,25 @@ export default function RoomDetail({ room, loading }: RoomDetailProps) {
 
       <View className="flex-row flex-wrap p-2">
         <View className="w-1/2 mb-2">
-          <Text className="text-gray-500">Tòa nhà</Text>
-          <Text className="font-medium text-lg">{room.building || "N/A"}</Text>
-        </View>
-        <View className="w-1/2 mb-2">
           <Text className="text-gray-500">Tầng</Text>
-          <Text className="font-medium text-lg">{room.floor || "N/A"}</Text>
-        </View>
-        <View className="w-1/2 mb-2">
-          <Text className="text-gray-500">Sức chứa</Text>
-          <Text className="font-medium text-lg">
-            {room.capacity || "N/A"} người
-          </Text>
+          <Text className="font-medium text-lg">{room.location || "N/A"}</Text>
         </View>
         <View className="w-1/2 mb-2">
           <Text className="text-gray-500">Trạng thái</Text>
           <Text
             className={`font-medium text-lg ${
-              room.available ? "text-green-500" : "text-red-500"
+              room.status === "available"
+                ? "text-green-500"
+                : room.status === "in_use"
+                ? "text-red-500"
+                : "text-yellow-600"
             }`}
           >
-            {room.available ? "Có sẵn" : "Đã sử dụng"}
+            {room.status === "available"
+              ? "Có sẵn"
+              : room.status === "in_use"
+              ? "Đã sử dụng"
+              : "Đang bảo trì"}
           </Text>
         </View>
       </View>
