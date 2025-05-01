@@ -1,9 +1,7 @@
 // app/(home)/history.tsx
 import { View, Text, SafeAreaView, FlatList } from "react-native";
 import React, { useState, useEffect } from "react";
-import Header from "../../components/ui/Header";
 import { Ionicons } from "@expo/vector-icons";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { Image } from "react-native";
 
 type HistoryItem = {
