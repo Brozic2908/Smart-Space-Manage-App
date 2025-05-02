@@ -8,6 +8,7 @@ import {
   Keyboard,
   Image,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,9 +22,19 @@ export default function signIn() {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
 
   const handleLogin = () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
     console.log("Login pressed with: ", email, password);
     // TODO: thêm login đăng nhập
     router.replace("/(home)");
+  };
+
+  const navigateToRegister = () => {
+    // Navigate to register screen
+    router.push("/(auth)/register");
   };
 
   return (
@@ -32,18 +43,25 @@ export default function signIn() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
+        <Image
+          source={require("../../assets/images/bg.png")}
+          className="absolute opacity-70"
+          style={{ width: "100%" }}
+          resizeMode="cover"
+        />
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
           <View className="flex-1 justify-center px-6 py-5">
-            <View className="items-center mt-[-4rem]">
-              <View className="w-52 h-52">
+            <View className="items-center mt-[-6rem]">
+              <View className="w-52 h-52 flex-row justify-center items-center">
                 <Image
                   source={require("../../assets/images/logoBK.png")}
                   className="w-full h-full"
+                  style={{ width: 180, height: 180 }}
                   resizeMode="cover"
                 />
               </View>
-              <Text className="text-3xl font-bold text-gray-800">
-                Welcome Back
+              <Text className="text-3xl font-bold text-primary">
+                Welcome Back!
               </Text>
               <Text className="text-lg text-gray-500 mt-2">
                 Sign in to continue
@@ -111,6 +129,17 @@ export default function signIn() {
             >
               <Text className="text-white text-lg font-bold">Login</Text>
             </TouchableOpacity>
+            <Text className="text-lg text-center text-gray-500 mt-6">
+              If you don't have an account,
+            </Text>
+            <View className="flex-row justify-center">
+              <Text className="text-lg text-gray-500 me-2">You can</Text>
+              <TouchableOpacity onPress={navigateToRegister}>
+                <Text className="text-primary font-bold text-lg">
+                  Register here!
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
