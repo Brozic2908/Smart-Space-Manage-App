@@ -5,9 +5,8 @@ import qs from "qs";
 // User interface defines
 export interface User {
   id: string;
-  name: string;
   email: string;
-  password: string;
+  role: "student" | "lecturer" | "admin" | "it" | "technician";
 }
 
 // Register request interface
@@ -48,13 +47,13 @@ const authService = {
         name: userData.name,
         email: userData.email,
         password: userData.password,
-        role: "student",
+        role: userData.role || "student", // Default to student if no role provided
       });
 
       return response.data;
     } catch (err: any) {
-      console.error("Register error:", err.response?.data || err.message);
-      throw new Error("Registration failed. Please try again.");
+      console.warn("Register error:", err.response?.data || err.message);
+      throw err;
     }
   },
 

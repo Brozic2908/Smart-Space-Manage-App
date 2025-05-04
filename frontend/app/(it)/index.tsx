@@ -12,9 +12,7 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
-import { RollInLeft } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { Filter } from "react-native-svg";
 
 // Mock user data based on the database schema provided
 const mockUsers: User[] = [

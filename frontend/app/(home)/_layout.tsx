@@ -3,21 +3,14 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
-import {
-  Image,
-  Platform,
-  Touchable,
-  TouchableHighlight,
-  TouchableNativeFeedback,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Platform, TouchableOpacity, View } from "react-native";
+import { authService } from "@/services";
 
 export default function HomeLayout() {
   const router = useRouter();
 
   const handleLogout = () => {
-    // TODO: Implement logout logic
+    authService.logout();
     router.replace("/(auth)");
   };
 

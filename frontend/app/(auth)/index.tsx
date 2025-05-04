@@ -47,7 +47,23 @@ export default function signIn() {
       console.log("Login successful: ", response);
 
       // Navigate to home screen after successful login
-      router.replace("/(home)");
+      switch (response.role) {
+        case "student":
+        case "lecturer":
+          router.replace("/(home)");
+          break;
+        case "admin":
+          router.replace("/(management)");
+          break;
+        case "it":
+          router.replace("/(it)");
+          break;
+        case "technician":
+          router.replace("/(engineer)");
+          break;
+        default:
+          break;
+      }
     } catch (error: any) {
       // Handle login errors
       const errorMessage =

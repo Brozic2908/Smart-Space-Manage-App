@@ -10,11 +10,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { TextInput } from "react-native-gesture-handler";
 import { useRouter } from "expo-router";
+import { authService } from "@/services";
 
 export default function Register() {
   const router = useRouter();
@@ -24,8 +26,9 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [confirmSecureTextEntry, setConfirmSecureTextEntry] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     // Validate fields
     if (!fullName || !email || !password || !confirmPassword) {
       Alert.alert("Error", "Please fill in all fields");
@@ -51,16 +54,38 @@ export default function Register() {
       return;
     }
 
-    console.log("Register pressed with: ", fullName, email, password);
-    // TODO: thêm api đăng ký tài khoản
+    setLoading(true);
 
-    // Redirect to login after successful registration
-    Alert.alert("Success", "Account created successfully!", [
-      {
-        text: "OK",
-        onPress: () => router.replace("/"),
-      },
-    ]);
+    try {
+      // Call register API
+      const response = await authService.register({
+        name: fullName,
+        email: email,
+        password: password,
+        role: "student",
+      });
+
+      console.log("Registration successful: ", response);
+
+      // Redirect to login after successful registration
+      Alert.alert("Success", "Account created successfully!", [
+        {
+          text: "OK",
+          onPress: () => router.replace("/"),
+        },
+      ]);
+      router.replace("/");
+    } catch (error: any) {
+      // Handle registration errors
+      const errorMessage =
+        error.response?.data?.detail?.[0]?.msg ||
+        error.response?.data?.detail ||
+        "Registration failed. Please try again.";
+
+      Alert.alert("Registration Error", errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const navigateToLogin = () => {
@@ -104,6 +129,7 @@ export default function Register() {
                     autoCorrect={false}
                     value={fullName}
                     onChangeText={setFullName}
+                    editable={!loading}
                   />
                 </View>
 
@@ -120,6 +146,7 @@ export default function Register() {
                     autoCorrect={false}
                     value={email}
                     onChangeText={setEmail}
+                    editable={!loading}
                   />
                 </View>
 
@@ -137,20 +164,20 @@ export default function Register() {
                       autoCorrect={false}
                       value={password}
                       onChangeText={setPassword}
+                      editable={!loading}
                     />
                     <TouchableOpacity
                       className="px-4"
                       onPress={() => setSecureTextEntry(!secureTextEntry)}
+                      disabled={loading}
                     >
-                      <Text>
-                        <Ionicons
-                          name={`${
-                            secureTextEntry ? "eye-off-outline" : "eye-outline"
-                          }`}
-                          size={20}
-                          color="black"
-                        />
-                      </Text>
+                      <Ionicons
+                        name={`${
+                          secureTextEntry ? "eye-off-outline" : "eye-outline"
+                        }`}
+                        size={20}
+                        color="black"
+                      />
                     </TouchableOpacity>
                   </View>
                   <Text className="text-xs text-gray-500 mt-1 ml-1">
@@ -172,31 +199,33 @@ export default function Register() {
                       autoCorrect={false}
                       value={confirmPassword}
                       onChangeText={setConfirmPassword}
+                      editable={!loading}
                     />
                     <TouchableOpacity
                       className="px-4"
                       onPress={() =>
                         setConfirmSecureTextEntry(!confirmSecureTextEntry)
                       }
+                      disabled={loading}
                     >
-                      <Text>
-                        <Ionicons
-                          name={`${
-                            confirmSecureTextEntry
-                              ? "eye-off-outline"
-                              : "eye-outline"
-                          }`}
-                          size={20}
-                          color="black"
-                        />
-                      </Text>
+                      <Ionicons
+                        name={`${
+                          confirmSecureTextEntry
+                            ? "eye-off-outline"
+                            : "eye-outline"
+                        }`}
+                        size={20}
+                        color="black"
+                      />
                     </TouchableOpacity>
                   </View>
                 </View>
               </View>
 
               <TouchableOpacity
-                className="bg-blue-700 h-14 rounded-lg justify-center items-center mt-4 shadow-lg"
+                className={`${
+                  loading ? "bg-blue-500" : "bg-blue-700"
+                } h-14 rounded-lg justify-center items-center mt-4 shadow-lg`}
                 style={{
                   shadowColor: "#022f6c",
                   shadowOffset: { width: 4, height: 4 },
@@ -204,14 +233,18 @@ export default function Register() {
                 }}
                 onPress={handleRegister}
               >
-                <Text className="text-white text-lg font-bold">Register</Text>
+                {loading ? (
+                  <ActivityIndicator color={"white"} />
+                ) : (
+                  <Text className="text-white text-lg font-bold">Register</Text>
+                )}
               </TouchableOpacity>
 
               <View className="flex-row justify-center mt-6 text-lg">
                 <Text className="text-gray-500 text-lg">
                   Already have an account?{" "}
                 </Text>
-                <TouchableOpacity onPress={navigateToLogin}>
+                <TouchableOpacity onPress={navigateToLogin} disabled={loading}>
                   <Text className="text-primary font-bold text-lg">
                     Login Here!
                   </Text>

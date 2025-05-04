@@ -3,12 +3,13 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
+import { authService } from "@/services";
 
 export default function HomeLayout() {
   const router = useRouter();
 
   const handleLogout = () => {
-    // TODO: Implement logout logic
+    authService.logout();
     router.replace("/(auth)");
   };
 
@@ -26,7 +27,7 @@ export default function HomeLayout() {
       }}
     >
       <Tabs.Screen
-        name="devices"
+        name="index"
         options={{
           title: "Devices",
           tabBarIcon: ({ color, size }) => (
