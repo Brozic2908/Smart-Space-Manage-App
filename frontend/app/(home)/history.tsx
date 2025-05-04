@@ -3,51 +3,16 @@ import { View, Text, SafeAreaView, FlatList } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "react-native";
+import { bookingService } from "@/services";
 
 type HistoryItem = {
   id: string;
-  room: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  status: "completed" | "cancelled";
+  room_code: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  status: "checked_out" | "cancelled";
 };
-
-// Mock history data
-const historyData: HistoryItem[] = [
-  {
-    id: "1",
-    room: "H3-806",
-    date: "25/04/2025",
-    startTime: "14:30",
-    endTime: "16:00",
-    status: "completed",
-  },
-  {
-    id: "2",
-    room: "H6-901",
-    date: "23/04/2025",
-    startTime: "10:00",
-    endTime: "11:30",
-    status: "completed",
-  },
-  {
-    id: "3",
-    room: "H8-301",
-    date: "21/04/2025",
-    startTime: "13:00",
-    endTime: "14:30",
-    status: "cancelled",
-  },
-  {
-    id: "4",
-    room: "H1-001",
-    date: "20/04/2025",
-    startTime: "16:00",
-    endTime: "17:30",
-    status: "completed",
-  },
-];
 
 export default function HistoryScreen() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -55,14 +20,20 @@ export default function HistoryScreen() {
 
   useEffect(() => {
     // Simulate API call
-    setTimeout(() => {
-      setHistory(historyData);
+    setTimeout(async () => {
+      const res = await bookingService.getAllHistoryBookings();
+      setHistory(res);
       setLoading(false);
     }, 1000);
   }, []);
 
   const renderHistoryItem = ({ item }: { item: HistoryItem }) => {
-    const isCompleted = item.status === "completed";
+    const isChecked_out = item.status === "checked_out";
+
+    const formatTime = (timeString: string) => {
+      // Format time from 08:00:00 to 08:00
+      return timeString.substring(0, 5);
+    };
 
     return (
       <View className="bg-white p-4 mb-3 rounded-lg shadow-sm">
@@ -72,18 +43,20 @@ export default function HistoryScreen() {
               <Ionicons name="business-outline" size={26} color="#0050B3" />
             </View>
             <View>
-              <Text className="font-medium text-lg ms-1 mb-1">{item.room}</Text>
+              <Text className="font-medium text-lg ms-1 mb-1">
+                {item.room_code}
+              </Text>
               <View
                 className={`px-2 py-1 rounded-full text-center ${
-                  isCompleted ? "bg-gray-100" : "bg-red-100"
+                  isChecked_out ? "bg-gray-100" : "bg-red-100"
                 }`}
               >
                 <Text
                   className={`text-sm font-medium text-center ${
-                    isCompleted ? "text-gray-600" : "text-red-600"
+                    isChecked_out ? "text-gray-600" : "text-red-600"
                   }`}
                 >
-                  {isCompleted ? "Đã hoàn thành" : "Đã hủy"}
+                  {isChecked_out ? "Đã hoàn thành" : "Đã hủy"}
                 </Text>
               </View>
             </View>
@@ -91,13 +64,13 @@ export default function HistoryScreen() {
           <View>
             <View className="flex-row justify-between items-center mb-1">
               <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-              <Text className="text-gray-600 ml-2">{item.date}</Text>
+              <Text className="text-gray-600 ml-2">{item.booking_date}</Text>
             </View>
 
             <View className="flex-row justify-between items-center">
               <Ionicons name="time-outline" size={16} color="#6B7280" />
               <Text className="text-gray-600 ml-2">
-                {item.startTime} - {item.endTime}
+                {formatTime(item.start_time)} - {formatTime(item.end_time)}
               </Text>
             </View>
           </View>

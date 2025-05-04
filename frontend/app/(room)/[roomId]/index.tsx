@@ -4,58 +4,136 @@ import {
   SafeAreaView,
   Image,
   TouchableOpacity,
-  StyleSheet,
   Modal,
   TouchableWithoutFeedback,
 } from "react-native";
-import React, { useState } from "react";
-import { Slot, useLocalSearchParams, useRouter } from "expo-router";
-import { useRoom } from "@/hooks/useRooms";
+import React, { useState, useEffect } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "@/components/ui/Button";
 import RoomDetail from "@/components/room/RoomDetail";
-import { timeSlots } from "@/constants/rooms";
+import { bookingService } from "@/services";
+
+// Định nghĩa interface cho Room
+interface Room {
+  id: number;
+  room_code: string;
+  room_type: string;
+  location: string;
+  status: string;
+  sensor: string;
+}
 
 export default function RoomDetailScreen() {
-  const { roomId } = useLocalSearchParams<{ roomId: string }>();
+  const params = useLocalSearchParams<{
+    roomId: string;
+    roomData: string;
+    roomType: string;
+    roomStatus: string;
+    roomLocation: string;
+    bookingDate: string;
+    startTime: string;
+    endTime: string;
+  }>();
   const router = useRouter();
-  const { room, loading, error } = useRoom(roomId || "");
-  const [selectedTime, setSelectedTime] = useState(null);
+
+  // Parse room data từ params
+  const [room, setRoom] = useState<Room | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showSelectedTime, setShowSelectedTime] = useState(false);
+
+  // Lấy thông tin phòng từ params ngay khi component được mount
+  useEffect(() => {
+    try {
+      setLoading(true);
+
+      // Nếu có roomData từ params, parse để lấy thông tin đầy đủ
+      if (params.roomData) {
+        const parsedRoom = JSON.parse(params.roomData);
+        setRoom(parsedRoom);
+      }
+      // Nếu không có roomData nhưng có thông tin riêng lẻ, tạo object room từ các thông tin đó
+      else if (params.roomId) {
+        const reconstructedRoom: Room = {
+          id: 0, // Giá trị mặc định
+          room_code: params.roomId,
+          room_type: params.roomType || "",
+          location: params.roomLocation || "",
+          status: params.roomStatus || "available",
+          sensor: "active", // Giá trị mặc định
+        };
+        setRoom(reconstructedRoom);
+      }
+      // Nếu không có đủ thông tin
+      else {
+        setError("Không tìm thấy thông tin phòng");
+      }
+    } catch (err) {
+      console.warn("Error parsing room data:", err);
+      setError("Lỗi khi xử lý thông tin phòng");
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    params.roomData,
+    params.roomId,
+    params.roomType,
+    params.roomLocation,
+    params.roomStatus,
+    params.bookingDate,
+    params.startTime,
+    params.endTime,
+  ]);
 
   const handleBookRoom = () => {
-    setShowSelectedTime(true);
+    setShowConfirmModal(true);
   };
 
-  const handleSelectTime = (time: any) => {
-    setSelectedTime(time);
-  };
+  const handleConfirmBooking = async () => {
+    try {
+      setLoading(true);
 
-  const handleProceedToConfirm = () => {
-    if (selectedTime) {
-      setShowConfirmModal(true);
-      setShowSelectedTime(false);
+      if (!room) {
+        setError("Không có thông tin phòng để đặt");
+        return;
+      }
+
+      const data = {
+        room_id: room.id,
+        booking_date: params.bookingDate,
+        start_time: params.startTime,
+        end_time: params.endTime,
+      };
+      await bookingService.bookingRoom(data);
+      setShowConfirmModal(false);
+      router.push("/(home)/booked");
+    } catch (error) {
+      console.warn("Error booking room:", error);
+      setError("Lỗi khi đặt phòng. Thời gian phải xảy ra trong tương lai");
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleConfirmBooking = () => {
-    // Here you would handle the actual booking process
-    // For now, we'll just go back to the room list
-    setShowConfirmModal(false);
-    router.push("/(home)/booked"); // Redirect to the rooms list
-  };
-
-  const handleCloseSelectedTime = () => {
-    setShowSelectedTime(false);
   };
 
   const handleCloseModal = () => {
     setShowConfirmModal(false);
   };
 
-  const changeTimeToString = (startTime: string, endTime: string) => {
-    return `${startTime} - ${endTime}`;
+  // Chuyển đổi dữ liệu phòng từ API sang định dạng phù hợp với component RoomDetail
+  const adaptRoomForDisplay = () => {
+    if (!room) return null;
+
+    return {
+      id: room.room_code,
+      type: room.room_type,
+      status: room.status,
+      location: room.location,
+      bookingDate: params.bookingDate,
+      startTime: params.startTime,
+      endTime: params.endTime,
+    };
   };
 
   if (loading) {
@@ -101,6 +179,8 @@ export default function RoomDetailScreen() {
     );
   }
 
+  const adaptedRoom = adaptRoomForDisplay();
+
   return (
     <SafeAreaView className="flex-1 bg-blue-50">
       <Image
@@ -120,7 +200,7 @@ export default function RoomDetailScreen() {
       </View>
 
       <View className="flex-1">
-        <RoomDetail room={room} loading={loading} />
+        <RoomDetail room={adaptedRoom} loading={loading} />
 
         {!loading && room && (
           <View className="px-6">
@@ -134,83 +214,6 @@ export default function RoomDetailScreen() {
               phòng duy nhất. Nếu đăng ký 2 phòng khác nhau cùng một khung giờ,
               hệ thống sẽ không nhận yêu cầu.
             </Text>
-            <Modal
-              visible={showSelectedTime}
-              transparent
-              animationType="fade"
-              onRequestClose={() => setShowSelectedTime(false)}
-            >
-              <TouchableWithoutFeedback
-                onPress={() => setShowSelectedTime(false)}
-              >
-                <View className="flex-1 justify-center items-center bg-black/50">
-                  <TouchableWithoutFeedback onPress={() => {}}>
-                    <View className="bg-white rounded-xl p-6 shadow-sm w-4/5">
-                      <Text className="text-lg text-center font-bold mb-4">
-                        Chọn khung giờ
-                      </Text>
-                      <View className="flex-row flex-wrap justify-center gap-4">
-                        {timeSlots.map((slot) => (
-                          <TouchableOpacity
-                            className={`py-3 px-4 rounded-lg ${
-                              selectedTime ===
-                              changeTimeToString(slot.startTime, slot.endTime)
-                                ? "bg-blue-600"
-                                : slot.available
-                                ? "bg-blue-500"
-                                : "bg-gray-300"
-                            }`}
-                            key={slot.id}
-                            disabled={!slot.available}
-                            style={{ minWidth: 100 }}
-                            onPress={() =>
-                              handleSelectTime(
-                                changeTimeToString(slot.startTime, slot.endTime)
-                              )
-                            }
-                          >
-                            <Text
-                              className={`text-center font-medium ${
-                                selectedTime ===
-                                  changeTimeToString(
-                                    slot.startTime,
-                                    slot.endTime
-                                  ) || slot.available
-                                  ? "text-white"
-                                  : "text-gray-500"
-                              }`}
-                            >
-                              {slot.startTime} - {slot.endTime}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-
-                      <View className="mt-8">
-                        <Button
-                          title="Chọn khung giờ này"
-                          onPress={handleProceedToConfirm}
-                          variant="primary"
-                          disabled={!selectedTime}
-                          fullWidth
-                          className={`py-3 ${
-                            !selectedTime ? "opacity-50" : ""
-                          }`}
-                        />
-                        <TouchableOpacity
-                          className="bg-gray-300 rounded-lg py-3 px-6 mt-3"
-                          onPress={handleCloseSelectedTime}
-                        >
-                          <Text className="text-center font-medium">
-                            Quay lại
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </TouchableWithoutFeedback>
-                </View>
-              </TouchableWithoutFeedback>
-            </Modal>
 
             {room.status === "available" ? (
               <Button
@@ -223,7 +226,9 @@ export default function RoomDetailScreen() {
             ) : (
               <View className="bg-gray-100 p-4 rounded-lg">
                 <Text className="text-center text-gray-500">
-                  Phòng này hiện đang được sử dụng
+                  {room.status === "in_use"
+                    ? "Phòng này hiện đang được sử dụng"
+                    : "Phòng này hiện đang bảo trì"}
                 </Text>
               </View>
             )}
@@ -247,13 +252,22 @@ export default function RoomDetailScreen() {
 
                       <View className="mb-6">
                         <Text className="text-gray-700 mb-1">
-                          Phòng: {room?.id}
+                          Phòng: {room.room_code}
                         </Text>
                         <Text className="text-gray-700 mb-1">
-                          Type: {room?.type}
+                          Loại phòng: {room.room_type}
                         </Text>
-                        <Text className="text-gray-700">
-                          Thời gian: {selectedTime}
+                        <Text className="text-gray-700 mb-1">
+                          Vị trí: {room.location}
+                        </Text>
+                        <Text className="text-gray-700 mb-1">
+                          Ngày đặt: {params.bookingDate}
+                        </Text>
+                        <Text className="text-gray-700 mb-1">
+                          Bắt đầu: {params.startTime}
+                        </Text>
+                        <Text className="text-gray-700 mb-1">
+                          Kết thúc: {params.endTime}
                         </Text>
                       </View>
 

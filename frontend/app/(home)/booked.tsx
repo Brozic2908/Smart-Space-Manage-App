@@ -7,99 +7,125 @@ import {
   Image,
   Modal,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { bookingService, checkService } from "@/services";
 
 type BookedRoom = {
-  id: string;
-  room: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  status: "active" | "completed" | "cancelled";
+  id: number;
+  user_name: string;
+  room_code: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  status: "active" | "checked_in" | "checked_out" | "cancelled";
+  created_at: string;
 };
-
-// Mock data for booked rooms
-const bookedRoomsData: BookedRoom[] = [
-  {
-    id: "1",
-    room: "H6-901",
-    date: "28/04/2025",
-    startTime: "10:00",
-    endTime: "11:30",
-    status: "active",
-  },
-  {
-    id: "2",
-    room: "H8-301",
-    date: "29/04/2025",
-    startTime: "13:00",
-    endTime: "14:30",
-    status: "active",
-  },
-  {
-    id: "3",
-    room: "H3-806",
-    date: "27/04/2025",
-    startTime: "14:30",
-    endTime: "16:00",
-    status: "completed",
-  },
-  {
-    id: "4",
-    room: "H6-901",
-    date: "28/04/2025",
-    startTime: "10:00",
-    endTime: "11:30",
-    status: "active",
-  },
-  {
-    id: "5",
-    room: "H8-301",
-    date: "29/04/2025",
-    startTime: "13:00",
-    endTime: "14:30",
-    status: "active",
-  },
-  {
-    id: "6",
-    room: "H3-806",
-    date: "27/04/2025",
-    startTime: "14:30",
-    endTime: "16:00",
-    status: "cancelled",
-  },
-];
 
 export default function booked() {
   const router = useRouter();
   const [bookedRooms, setBookedRooms] = useState<BookedRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<BookedRoom | null>(
+    null
+  );
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setBookedRooms(bookedRoomsData);
-      setLoading(false);
-    }, 1000);
+    fetchBookings();
   }, []);
 
-  const handleConfirmBooking = () => {
-    // TODO: Here you would handle the actual booking process
-    // For now, we'll just go back to the room list
-    setShowConfirmModal(false);
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const data = await bookingService.getAllMybookings();
+
+      // Sort bookings by created_at (newest first)
+      const sortedData = [...data].sort((a, b) => {
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      });
+
+      setBookedRooms(sortedData);
+      setError(null);
+    } catch (err) {
+      setError("Không thể tải danh sách phòng đã đặt");
+      console.warn("Error fetching booked rooms:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCloseModal = () => {
-    setShowConfirmModal(false);
+  const handleCancelBooking = (booking: BookedRoom) => {
+    setSelectedBooking(booking);
+    setShowConfirmModal(true);
+  };
+
+  const confirmCancelBooking = async () => {
+    try {
+      if (selectedBooking) {
+        setLoading(true);
+        await bookingService.cancelBooking(selectedBooking.id);
+        fetchBookings();
+      }
+    } catch (err) {
+      console.warn("Error cancelling booking:", err);
+      setError("Không thể hủy đặt phòng. Vui lòng thử lại sau.");
+    } finally {
+      setShowConfirmModal(false);
+      setLoading(false);
+    }
+  };
+
+  const handleCheckin = async (bookingId: number) => {
+    try {
+      setLoading(true);
+      await checkService.checkIn(bookingId);
+      fetchBookings(); // Refresh the list
+    } catch (err) {
+      console.warn("Error checking in:", err);
+      setError("Không thể check-in. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckout = async (bookingId: number) => {
+    try {
+      setLoading(true);
+      // Use the checkService instead of bookingService for checkout
+      await checkService.checkOut(bookingId);
+      fetchBookings(); // Refresh the list
+    } catch (err) {
+      console.warn("Error checking out:", err);
+      setError("Không thể check-out. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    // Format time from 08:00:00 to 08:00
+    return timeString.substring(0, 5);
   };
 
   const renderBookedRoomItem = ({ item }: { item: BookedRoom }) => {
-    const isActive = item.status === "active";
-    const isCompleted = item.status === "completed";
+    const isActive = item.status === "active" || item.status === "checked_in";
+    const isCompleted = item.status === "checked_out";
 
     return (
       <View className="bg-white p-4 rounded-lg shadow-sm mb-3">
@@ -109,10 +135,14 @@ export default function booked() {
               <Ionicons name="business-outline" size={26} color="#0050B3" />
             </View>
             <View>
-              <Text className="font-medium text-lg mb-1 ms-1">{item.room}</Text>
+              <Text className="font-medium text-lg mb-1 ms-1">
+                {item.room_code}
+              </Text>
               <View
                 className={`px-2 py-1 rounded-full flex-row justify-center ${
-                  isActive
+                  item.status === "active"
+                    ? "bg-blue-100"
+                    : item.status === "checked_in"
                     ? "bg-green-100"
                     : isCompleted
                     ? "bg-gray-100"
@@ -121,15 +151,19 @@ export default function booked() {
               >
                 <Text
                   className={`text-sm font-medium ${
-                    isActive
+                    item.status === "active"
+                      ? "text-blue-600"
+                      : item.status === "checked_in"
                       ? "text-green-600"
                       : isCompleted
                       ? "text-gray-600"
                       : "text-red-600"
                   }`}
                 >
-                  {isActive
-                    ? "Đang diễn ra"
+                  {item.status === "active"
+                    ? "Đang hiệu lực"
+                    : item.status === "checked_in"
+                    ? "Đã check-in"
                     : isCompleted
                     ? "Đã hoàn thành"
                     : "Đã hủy"}
@@ -140,34 +174,24 @@ export default function booked() {
           <View>
             <View className="flex-row justify-between items-center mb-1">
               <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-              <Text className="text-gray-600 ml-2">{item.date}</Text>
+              <Text className="text-gray-600 ml-2">
+                {formatDate(item.booking_date)}
+              </Text>
             </View>
             <View className="flex-row justify-between items-center">
               <Ionicons name="time-outline" size={16} color={"#6B7280"} />
               <Text className="text-gray-600 ml-2">
-                {item.startTime} - {item.endTime}
+                {formatTime(item.start_time)} - {formatTime(item.end_time)}
               </Text>
             </View>
           </View>
         </View>
 
         <View className="flex-row mt-3 pt-2 justify-between border-t border-gray-200">
-          <TouchableOpacity
-            className="flex-1 flex-row justify-center items-center"
-            onPress={() => router.push(`/(room)/${item.room}`)}
-          >
-            <Ionicons
-              name="information-circle-outline"
-              size={18}
-              color="#2563eb"
-            />
-            <Text className="text-blue-600 ml-1 font-medium">Chi tiết</Text>
-          </TouchableOpacity>
-
-          {isActive && (
+          {isActive && item.status !== "checked_in" && (
             <TouchableOpacity
               className="flex-1 flex-row justify-center items-center"
-              onPress={() => setShowConfirmModal(true)}
+              onPress={() => handleCancelBooking(item)}
             >
               <Ionicons name="close-circle-outline" size={18} color="#EF4444" />
               <Text className="text-red-500 ml-1 font-medium">Hủy đặt</Text>
@@ -176,13 +200,32 @@ export default function booked() {
 
           {isActive && (
             <TouchableOpacity
-              className="flex-1 flex-row justify-center items-center rounded-full bg-green-50 py-1"
+              className={`flex-1 flex-row justify-center items-center rounded-full ${
+                item.status === "checked_in" ? "bg-yellow-100" : "bg-green-100"
+              } py-1`}
               onPress={() => {
-                router.push(`/(home)/scanQR`);
+                if (item.status === "checked_in") {
+                  handleCheckout(item.id);
+                } else {
+                  handleCheckin(item.id);
+                }
               }}
             >
-              <Ionicons name="qr-code-outline" size={18} color="#3e9762" />
-              <Text className="text-green-600 ml-1 font-medium">Check-in</Text>
+              {item.status === "checked_in" ? (
+                <>
+                  <Ionicons name="log-out-outline" size={18} color="#d97706" />
+                  <Text className="text-yellow-700 ml-1 font-medium">
+                    Check-out
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Ionicons name="qr-code-outline" size={18} color="#3e9762" />
+                  <Text className="text-green-600 ml-1 font-medium">
+                    Check-in
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -207,7 +250,19 @@ export default function booked() {
       <View className="flex-1 px-4 pt-4">
         {loading ? (
           <View className="flex-1 justify-center items-center">
-            <Text className="text-gray-500">Đang tải ...</Text>
+            <ActivityIndicator size="large" color="#0050B3" />
+            <Text className="text-gray-500 mt-2">Đang tải ...</Text>
+          </View>
+        ) : error ? (
+          <View className="flex-1 justify-center items-center">
+            <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+            <Text className="text-red-500 mt-4 text-center">{error}</Text>
+            <TouchableOpacity
+              className="mt-4 bg-blue-700 py-2 px-6 rounded-lg"
+              onPress={fetchBookings}
+            >
+              <Text className="text-white font-medium">Thử lại</Text>
+            </TouchableOpacity>
           </View>
         ) : bookedRooms.length === 0 ? (
           <View className="flex-1 justify-center items-center">
@@ -226,8 +281,10 @@ export default function booked() {
           <FlatList
             data={bookedRooms}
             renderItem={renderBookedRoomItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
             showsVerticalScrollIndicator={false}
+            refreshing={loading}
+            onRefresh={fetchBookings}
           />
         )}
       </View>
@@ -237,7 +294,7 @@ export default function booked() {
         visible={showConfirmModal}
         transparent={true}
         animationType="fade"
-        onRequestClose={handleCloseModal}
+        onRequestClose={() => setShowConfirmModal(false)}
       >
         <TouchableWithoutFeedback onPress={() => setShowConfirmModal(false)}>
           <View className="flex-1 justify-center items-center bg-black/50">
@@ -247,29 +304,35 @@ export default function booked() {
                   Sinh viên vui lòng xác nhận để hủy đặt phòng
                 </Text>
 
-                <View className="mb-6">
-                  <Text className="text-gray-700 mb-1">
-                    {/* Phòng: {bookedRooms?.room} */}
-                  </Text>
-                  <Text className="text-gray-700 mb-1">
-                    {/* Type: {bookedRooms?.type} */}
-                  </Text>
-                </View>
+                {selectedBooking && (
+                  <View className="mb-6">
+                    <Text className="text-gray-700 mb-1">
+                      Phòng: {selectedBooking.room_code}
+                    </Text>
+                    <Text className="text-gray-700 mb-1">
+                      Ngày: {formatDate(selectedBooking.booking_date)}
+                    </Text>
+                    <Text className="text-gray-700 mb-1">
+                      Thời gian: {formatTime(selectedBooking.start_time)} -{" "}
+                      {formatTime(selectedBooking.end_time)}
+                    </Text>
+                  </View>
+                )}
 
                 <View className="flex-row justify-between">
                   <TouchableOpacity
                     className="bg-gray-300 rounded-lg py-3 px-6"
-                    onPress={handleCloseModal}
+                    onPress={() => setShowConfirmModal(false)}
                   >
                     <Text className="text-center font-medium">Quay lại</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    className="bg-blue-600 rounded-lg py-3 px-6"
-                    onPress={handleConfirmBooking}
+                    className="bg-red-600 rounded-lg py-3 px-6"
+                    onPress={confirmCancelBooking}
                   >
                     <Text className="text-center font-medium text-white">
-                      Xác nhận
+                      Xác nhận hủy
                     </Text>
                   </TouchableOpacity>
                 </View>
