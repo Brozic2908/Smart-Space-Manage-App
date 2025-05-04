@@ -7,13 +7,15 @@ import {
   Pressable,
   SafeAreaView,
   AppState,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Camera, CameraView, useCameraPermissions } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { useIsFocused } from "@react-navigation/native";
+import { checkService } from "@/services";
 
 export default function ScanQR() {
   const router = useRouter();
@@ -21,6 +23,8 @@ export default function ScanQR() {
   const [scanned, setScanned] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
+  const [loading, setLoading] = useState(false);
+  const [hasPermission, setHasPermission] = useState(false); // Track camera permission
   const qrLock = useRef(false); // Prevent multiple scans
   const appState = useRef(AppState.currentState); // Track app state
   const cameraRef = useRef(null);
@@ -63,7 +67,7 @@ export default function ScanQR() {
     };
   }, []);
 
-  const handleBarCodeScanned = ({
+  const handleBarCodeScanned = async ({
     type,
     data,
   }: {
@@ -71,27 +75,29 @@ export default function ScanQR() {
     data: string;
   }) => {
     if (qrLock.current || !isFocused) return;
-    setScanned(true);
     qrLock.current = true; // Lock scanning
     console.log("QR code scanned:", type, data);
+    setScanned(true);
+    setLoading(true);
 
     // In a real app, you would validate the QR code data format
     // For this example, we'll assume the QR code contains a room ID
     try {
       // Check if data is a valid room ID format (e.g., H6-901)
-      if (/^H\d+-\d+$/.test(data)) {
-        router.push(`/(room)/${data}`);
-      } else {
-        alert(`Invalid QR code: ${data}`);
-        // Reset to scan again
-        setTimeout(() => {
-          setScanned(false);
-          qrLock.current = false;
-        }, 2000);
+      const roomCode = data.trim();
+
+      const res = await checkService.checkInWithQR(roomCode);
+
+      if (res.status === 200) {
+        alert("Check-in successful!");
+        router.push("/booked");
       }
     } catch (error) {
-      console.error("Error processing QR code", error);
-      alert("Could not process QR code. Please try again.");
+      console.warn("Error processing QR code", error);
+      Alert.alert(
+        "QR Error",
+        `No matching booking found. Please check if the time is available`
+      );
       setTimeout(() => {
         setScanned(false);
         qrLock.current = false;
