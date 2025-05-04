@@ -1,9 +1,8 @@
 import React from "react";
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useRouter } from "expo-router";
-import { Platform, TouchableOpacity, View } from "react-native";
+import AntDesign from "@expo/vector-icons/AntDesign";
 import { authService } from "@/services";
 
 export default function HomeLayout() {
@@ -30,62 +29,21 @@ export default function HomeLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "Dashboard",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <AntDesign name="dashboard" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="booked"
+        name="rooms"
         options={{
-          title: "Booking",
+          title: "Rooms",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar-outline" size={size} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
-        name="scanQR"
-        options={{
-          tabBarButton: ({ onPress }) => (
-            <TouchableOpacity
-              onPress={onPress}
-              activeOpacity={1}
-              style={{
-                top: -16,
-                justifyContent: "center",
-                alignItems: "center",
-                ...Platform.select({
-                  ios: {
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 10 },
-                    shadowOpacity: 0.12,
-                    shadowRadius: 5,
-                  },
-                  android: {
-                    elevation: 5,
-                  },
-                }),
-              }}
-            >
-              <View
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 35,
-                  backgroundColor: "#073E7E", // Tailwind blue-600
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <MaterialIcons name="qr-code-scanner" size={36} color="white" />
-              </View>
-            </TouchableOpacity>
-          ),
-        }}
-      />
-
       <Tabs.Screen
         name="history"
         options={{

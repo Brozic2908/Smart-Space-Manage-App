@@ -2,7 +2,7 @@ import { View, Text, ActivityIndicator, FlatList } from "react-native";
 import React from "react";
 import RoomCard from "@/components/ui/RoomCard";
 import { useRooms } from "@/hooks/useRooms";
-import { TouchableOpacity } from "react-native-gesture-handler";
+import { TouchableOpacity } from "react-native";
 
 interface RoomListProps {
   roomType?: string;

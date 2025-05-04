@@ -15,7 +15,7 @@ export default function HomeScreen() {
   const { rooms, loading, error } = useRooms(activeTab);
 
   const renderRoomCard = ({ item }: any) => (
-    <RoomCard id={item.id} type={item.type} available={item.available} />
+    <RoomCard id={item.id} type={item.type} status={item.status} />
   );
 
   return (
