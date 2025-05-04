@@ -9,27 +9,55 @@ import {
   Image,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { TextInput } from "react-native-gesture-handler";
 import { useRouter } from "expo-router";
+import { authService } from "@/services";
 
 export default function signIn() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    // Validate input fields
     if (!email || !password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
-    console.log("Login pressed with: ", email, password);
-    // TODO: thêm login đăng nhập
-    router.replace("/(home)");
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Call login API
+      const response = await authService.login(email, password);
+
+      console.log("Login successful: ", response);
+
+      // Navigate to home screen after successful login
+      router.replace("/(home)");
+    } catch (error: any) {
+      // Handle login errors
+      const errorMessage =
+        error.response?.data?.detail?.[0]?.msg ||
+        error.response?.data?.detail ||
+        "Login failed. Please check your credentials and try again.";
+      Alert.alert("Login Error", errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const navigateToRegister = () => {
@@ -82,6 +110,7 @@ export default function signIn() {
                   autoCorrect={false}
                   value={email}
                   onChangeText={setEmail}
+                  editable={!loading}
                 />
               </View>
 
@@ -99,10 +128,12 @@ export default function signIn() {
                     autoCorrect={false}
                     value={password}
                     onChangeText={setPassword}
+                    editable={!loading}
                   />
                   <TouchableOpacity
                     className="px-4"
                     onPress={() => setSecureTextEntry(!secureTextEntry)}
+                    disabled={loading}
                   >
                     <Text>
                       <Ionicons
@@ -119,22 +150,29 @@ export default function signIn() {
             </View>
 
             <TouchableOpacity
-              className="bg-blue-700 h-14 rounded-lg justify-center items-center mt-2 shadow-lg"
+              className={`${
+                loading ? "bg-blue-500" : "bg-blue-700"
+              } h-14 rounded-lg justify-center items-center mt-2 shadow-lg`}
               style={{
                 shadowColor: "#022f6c",
                 shadowOffset: { width: 4, height: 4 },
                 elevation: 5,
               }}
               onPress={handleLogin}
+              disabled={loading}
             >
-              <Text className="text-white text-lg font-bold">Login</Text>
+              {loading ? (
+                <ActivityIndicator color={"white"} />
+              ) : (
+                <Text className="text-white text-lg font-bold">Login</Text>
+              )}
             </TouchableOpacity>
             <Text className="text-lg text-center text-gray-500 mt-6">
               If you don't have an account,
             </Text>
             <View className="flex-row justify-center">
               <Text className="text-lg text-gray-500 me-2">You can</Text>
-              <TouchableOpacity onPress={navigateToRegister}>
+              <TouchableOpacity onPress={navigateToRegister} disabled={loading}>
                 <Text className="text-primary font-bold text-lg">
                   Register here!
                 </Text>
