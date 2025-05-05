@@ -46,9 +46,9 @@ class CheckinService:
         booking = db.query(Booking).filter(
             Booking.user_id == user_id,
             Booking.room_id == room.id,
-            # Booking.booking_date == today,
-            # Booking.start_time <= current_time,
-            # Booking.end_time >= current_time,
+            Booking.booking_date == today,
+            Booking.start_time <= current_time,
+            Booking.end_time >= current_time,
             Booking.status == BookingStatus.active
         ).first()
         if not booking:

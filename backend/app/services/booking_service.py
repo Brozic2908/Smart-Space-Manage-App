@@ -60,11 +60,11 @@ class BookingService:
         else:
             event_subject.notify("checkin_reminder", {"booking_id": booking.id})
 
-        # delay_timeout = (start + timedelta(minutes=5) - now).total_seconds()
-        # if delay_timeout > 0:
-        #     Timer(delay_timeout, lambda: event_subject.notify("checkin_timeout", {"booking_id": booking.id})).start()
-        # else:
-        #     event_subject.notify("checkin_timeout", {"booking_id": booking.id})
+        delay_timeout = (start + timedelta(minutes=5) - now).total_seconds()
+        if delay_timeout > 0:
+            Timer(delay_timeout, lambda: event_subject.notify("checkin_timeout", {"booking_id": booking.id})).start()
+        else:
+            event_subject.notify("checkin_timeout", {"booking_id": booking.id})
 
         end = datetime.combine(booking_date, end_time)
         delay_checkout = (end - now).total_seconds()
