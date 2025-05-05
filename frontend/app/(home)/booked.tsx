@@ -9,8 +9,8 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { bookingService, checkService } from "@/services";
 
@@ -35,9 +35,11 @@ export default function booked() {
   );
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchBookings();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchBookings();
+    }, [])
+  );
 
   const fetchBookings = async () => {
     try {
@@ -89,7 +91,9 @@ export default function booked() {
       fetchBookings(); // Refresh the list
     } catch (err) {
       console.warn("Error checking in:", err);
-      setError("Không thể check-in. Vui lòng thử lại sau.");
+      setError(
+        "Không thể check-in. Chưa đến thời gian check-in .Vui lòng thử lại sau."
+      );
     } finally {
       setLoading(false);
     }

@@ -32,6 +32,7 @@ const authService = {
       // Save the auth token to AsyncStorage
       if (response.data?.access_token) {
         await AsyncStorage.setItem("auth_token", response.data.access_token);
+        await AsyncStorage.setItem("role", response.data.role);
       }
 
       return response.data;
@@ -61,6 +62,7 @@ const authService = {
     try {
       // remove the token from asyncStorage
       await AsyncStorage.removeItem("auth_token");
+      await AsyncStorage.removeItem("role");
     } catch (error) {
       console.error("Logout error:", error);
       throw error;

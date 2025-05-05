@@ -10,73 +10,11 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { itService } from "@/services";
 
-// Mock user data based on the database schema provided
-const mockUsers: User[] = [
-  {
-    id: "550e8400-e29b-41d4-a716-446655440000",
-    name: "Nguyen Van An",
-    email: "an.nguyen@hcmut.edu.vn",
-    role: "student",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440001",
-    name: "Tran Thi Binh",
-    email: "binh.tran@hcmut.edu.vn",
-    role: "student",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440002",
-    name: "Le Minh Cuong",
-    email: "cuong.le@hcmut.edu.vn",
-    role: "lecturer",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440003",
-    name: "Pham Thi Dung",
-    email: "dung.pham@hcmut.edu.vn",
-    role: "lecturer",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440004",
-    name: "Hoang Van Em",
-    email: "em.hoang@hcmut.edu.vn",
-    role: "admin",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440005",
-    name: "Vo Thi Giang",
-    email: "giang.vo@hcmut.edu.vn",
-    role: "it",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440006",
-    name: "Lam Van Hai",
-    email: "hai.lam@hcmut.edu.vn",
-    role: "technician",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440007",
-    name: "Nguyen Thi Khanh",
-    email: "khanh.nguyen@hcmut.edu.vn",
-    role: "student",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440008",
-    name: "Tran Van Lam",
-    email: "lam.tran@hcmut.edu.vn",
-    role: "student",
-  },
-  {
-    id: "550e8400-e29b-41d4-a716-446655440009",
-    name: "Le Thi Mai",
-    email: "mai.le@hcmut.edu.vn",
-    role: "lecturer",
-  },
-];
 // Define UserRole type
 type UserRole = "student" | "lecturer" | "admin" | "it" | "technician";
 
@@ -89,12 +27,27 @@ interface User {
 }
 
 export default function it() {
-  const router = useRouter();
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await itService.getAllDisplayUser();
+      setUsers(data);
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể tải danh sách người dùng.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChangeRole = (user: User) => {
     setSelectedUser(user);
@@ -106,25 +59,40 @@ export default function it() {
     setShowDeleteConfirm(true);
   };
 
-  const confirmDeleteUser = () => {
+  const confirmDeleteUser = async () => {
     if (selectedUser) {
-      const updatedUsers = users.filter((user) => user.id !== selectedUser.id);
-      setUsers(updatedUsers);
-      setShowDeleteConfirm(false);
-      // TODO: In a real app, you would make an API call to delete the user
-      Alert.alert("Thành công", "Đã xóa tài khoản người dùng");
+      try {
+        setLoading(true);
+        await itService.deleteUser(selectedUser.id);
+        // Update local state after successful API call
+        setUsers(users.filter((user) => user.id !== selectedUser.id));
+        Alert.alert("Thành công", `Đã xóa người dùng ${selectedUser.name}`);
+      } catch (error) {
+        Alert.alert("Lỗi", "Không thể xóa tài khoản người dùng");
+      } finally {
+        setLoading(false);
+        setShowDeleteConfirm(false);
+      }
     }
   };
 
-  const saveNewRole = (newRole: UserRole) => {
+  const saveNewRole = async (newRole: UserRole) => {
     if (selectedUser) {
-      const updatedUsers = users.map((user) =>
-        user.id === selectedUser.id ? { ...user, role: newRole } : user
-      );
-      setUsers(updatedUsers);
-      setShowRoleModal(false);
-      // TODO: In a real app, you would make an API call to update the user's role
-      Alert.alert("Thành công", "Đã thay đổi vai trò của người dùng");
+      try {
+        setLoading(true);
+        await itService.changeRole(selectedUser.id, newRole);
+        const updatedUsers = users.map((user) =>
+          user.id === selectedUser.id ? { ...user, role: newRole } : user
+        );
+        setUsers(updatedUsers);
+        setShowRoleModal(false);
+        Alert.alert("Thành công", "Đã thay đổi vai trò của người dùng");
+      } catch (error) {
+        Alert.alert("Lỗi", "Không thể thay đổi vai trò người dùng");
+      } finally {
+        setLoading(false);
+        setShowRoleModal(false);
+      }
     }
   };
 
@@ -268,6 +236,8 @@ export default function it() {
             renderItem={renderUserItem}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
+            refreshing={loading}
+            onRefresh={fetchUsers}
           />
         ) : (
           <View className="flex-1 justify-center items-center">
@@ -275,6 +245,12 @@ export default function it() {
             <Text className="text-gray-400 mb-4 text-center">
               Không tìm thấy tài khoản nào
             </Text>
+            <TouchableOpacity
+              className="bg-blue-500 py-2 px-4 rounded-lg"
+              onPress={fetchUsers}
+            >
+              <Text className="text-white">Tải lại</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -315,6 +291,7 @@ export default function it() {
                     <View className="mb-4">
                       {roleOptions.map((role) => (
                         <TouchableOpacity
+                          key={role}
                           className={`flex-row items-center p-3 border-b border-gray-100 ${
                             selectedUser.role === role ? "bg-blue-50" : ""
                           }`}

@@ -13,7 +13,7 @@ const displayRoomService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Error fetching display rooms:", error);
+      console.warn("Error fetching display rooms:", error);
       throw error;
     }
   },

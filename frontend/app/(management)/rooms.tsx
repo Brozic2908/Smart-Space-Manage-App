@@ -10,62 +10,117 @@ import {
   Modal,
   TouchableWithoutFeedback,
   TextInput,
-  Switch,
+  Alert,
 } from "react-native";
-import React, { useState } from "react";
-import { rooms as mockRooms, Room } from "@/constants/rooms";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import { roomAdminService } from "@/services";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+
+interface Room {
+  id: number;
+  room_code: string;
+  room_type: "group" | "mentoring" | "individual";
+  status: "available" | "in_use" | "maintenance";
+  location: string;
+  sensor?: "active" | "inactive";
+}
 
 export default function room() {
-  const router = useRouter();
-  const [rooms, setRooms] = useState<Room[]>(mockRooms);
-  const [loading, setLoading] = useState(false);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
   // Form states
-  const [roomId, setRoomId] = useState("");
-  const [roomType, setRoomType] = useState("Group");
+  const [roomCode, setRoomCode] = useState("");
+  const [roomType, setRoomType] = useState("individual");
   const [roomStatus, setRoomStatus] = useState("available");
-  const [roomLocation, setRoomLocation] = useState("H6");
+  const [roomLocation, setRoomLocation] = useState("");
+  const [sensorStatus, setSensorStatus] = useState("active");
 
   // Room type options for form
-  type RoomType = "Group" | "Mentoring" | "Personal";
+  type RoomType = "group" | "mentoring" | "individual";
   type StatusType = "available" | "in_use" | "maintenance";
 
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  const fetchRooms = async () => {
+    setLoading(true);
+    try {
+      const roomData = await roomAdminService.getAllRooms();
+      setRooms(roomData);
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        "Failed to load rooms. Please check your connection and try again."
+      );
+      console.warn("Error fetching rooms: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddRoom = () => {
-    setRoomId("");
-    setRoomType("Group");
-    setRoomStatus("available");
+    setRoomCode("");
+    setRoomType("individual");
+    setRoomLocation("");
     setShowAddModal(true);
   };
 
-  const handleDeleteRoom = (room: any) => {
+  const handleDeleteRoom = (room: Room) => {
     setSelectedRoom(room);
     setShowDeleteConfirm(true);
   };
 
-  const saveNewRoom = () => {
-    const newRoom = {
-      id: roomId,
-      type: roomType as RoomType,
-      status: roomStatus as StatusType,
-      location: roomLocation,
-    };
-    setRooms([...rooms, newRoom]);
-    setShowAddModal(false);
+  const saveNewRoom = async () => {
+    try {
+      setLoading(true);
+      const newRoom = {
+        room_code: roomCode,
+        room_type: roomType as RoomType,
+        location: roomLocation,
+      };
+
+      await roomAdminService.createRoom(newRoom);
+
+      // Refresh roomlist
+      fetchRooms();
+
+      setShowAddModal(false);
+      Alert.alert("Success", "Room added successfully");
+    } catch (error) {
+      Alert.alert("Error", "Failed to add room. Please try again.");
+      console.warn("Error adding room:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteRoom = () => {
+  const deleteRoom = async () => {
     if (selectedRoom) {
-      const filteredRooms = rooms.filter(
-        (room) => selectedRoom && room.id !== selectedRoom.id
-      );
-      setRooms(filteredRooms);
+      try {
+        setLoading(true);
+        await roomAdminService.deleteRoom(selectedRoom.id);
+
+        // Update local state after successful deletion
+        const filteredRooms = rooms.filter(
+          (room) => room.id !== selectedRoom.id
+        );
+        setRooms(filteredRooms);
+
+        Alert.alert("Success", "Room deleted successfully");
+      } catch (error) {
+        Alert.alert("Error", "Failed to delete room. Please try again.");
+        console.warn("Error deleting room:", error);
+      } finally {
+        setLoading(false);
+        setShowDeleteConfirm(false);
+      }
     }
-    setShowDeleteConfirm(false);
   };
 
   const renderRoomItem = ({ item }: any) => (
@@ -77,16 +132,34 @@ export default function room() {
               <Ionicons name="business-outline" size={30} color="#2563EB" />
             </View>
             <View>
-              <Text className="text-lg font-medium">{item.id}</Text>
+              <Text className="text-lg font-medium">{item.room_code}</Text>
+              <View className="flex-row items-center mt-1">
+                <Ionicons name="location-outline" size={16} color="#6B7280" />
+                <Text className="text-gray-600 ml-2">
+                  {item.location.charAt(0).toUpperCase() +
+                    item.location.slice(1)}
+                </Text>
+              </View>
               <View className="flex-row items-center mt-1">
                 <Ionicons name="pricetag-outline" size={16} color="#6B7280" />
-                <Text className="text-gray-600 ml-2">Type: {item.type}</Text>
+                <Text className="text-gray-600 ml-2">
+                  Type:{" "}
+                  {item.room_type.charAt(0).toUpperCase() +
+                    item.room_type.slice(1)}
+                </Text>
+              </View>
+              <View className="flex-row items-center mt-1">
+                <MaterialIcons name="sensors" size={16} color="#6B7280" />
+                <Text className="text-gray-600 ml-2">
+                  Sensor:{" "}
+                  {item.sensor.charAt(0).toUpperCase() + item.sensor.slice(1)}
+                </Text>
               </View>
 
               <View className="flex-row items-center mt-1">
                 <Ionicons
                   name={
-                    item.available
+                    item.status === "available"
                       ? "checkmark-circle-outline"
                       : "close-circle-outline"
                   }
@@ -132,8 +205,7 @@ export default function room() {
   );
 
   // Room type options for form
-  const roomTypes = ["Group", "Mentoring", "Personal"];
-  const statusTypes = ["available", "in_use", "maintenance"];
+  const roomTypes = ["individual", "group", "mentoring"];
 
   return (
     <SafeAreaView className="flex-1 bg-blue-50">
@@ -155,16 +227,18 @@ export default function room() {
 
       <View className="flex-1 px-4">
         {loading ? (
-          <View>
+          <View className="flex-1 justify-center items-center">
             <ActivityIndicator size={"large"} color={"#2563EB"} />
           </View>
         ) : (
           <FlatList
             data={rooms}
             renderItem={renderRoomItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
+            refreshing={loading}
+            onRefresh={fetchRooms}
           />
         )}
       </View>
@@ -188,9 +262,19 @@ export default function room() {
                   <Text className="text-gray-700 mb-1">Room Name:</Text>
                   <TextInput
                     className="border border-gray-300 rounded-lg p-2 bg-gray-50"
-                    value={roomId}
-                    onChangeText={setRoomId}
+                    value={roomCode}
+                    onChangeText={setRoomCode}
                     placeholder="e.g. H4-805"
+                  />
+                </View>
+
+                <View className="mb-4">
+                  <Text className="text-gray-700 mb-1">Room Location:</Text>
+                  <TextInput
+                    className="border border-gray-300 rounded-lg p-2 bg-gray-50"
+                    value={roomLocation}
+                    onChangeText={setRoomLocation}
+                    placeholder="e.g. Building H4, Floor 8"
                   />
                 </View>
 
@@ -218,51 +302,19 @@ export default function room() {
                     ))}
                   </View>
                 </View>
-
-                <View className="mb-4">
-                  <Text className="text-gray-700 mb-1">Status:</Text>
-                  <View className="flex-row flex-wrap justify-start mb-6">
-                    {statusTypes.map((status) => (
-                      <TouchableOpacity
-                        key={status}
-                        className={`border mr-2 mb-2 rounded-lg px-3 py-2 ${
-                          roomStatus === status
-                            ? "bg-primary border-primary"
-                            : "border-gray-300 bg-gray-50"
-                        }`}
-                        onPress={() => setRoomStatus(status)}
-                      >
-                        <Text
-                          className={`${
-                            roomStatus === status
-                              ? "text-white"
-                              : "text-gray-700"
-                          }`}
-                        >
-                          {status === "available"
-                            ? "Available"
-                            : status === "in_use"
-                            ? "In Use"
-                            : "Maintenance"}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-
-                  <View className="flex-row justify-end space-x-3">
-                    <TouchableOpacity
-                      className="bg-gray-200 rounded-lg py-2 px-4"
-                      onPress={() => setShowAddModal(false)}
-                    >
-                      <Text className="text-gray-700">Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className="bg-primary rounded-lg py-2 px-4 ms-3"
-                      onPress={saveNewRoom}
-                    >
-                      <Text className="text-white">Save</Text>
-                    </TouchableOpacity>
-                  </View>
+                <View className="flex-row justify-end space-x-3">
+                  <TouchableOpacity
+                    className="bg-gray-200 rounded-lg py-2 px-4"
+                    onPress={() => setShowAddModal(false)}
+                  >
+                    <Text className="text-gray-700">Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="bg-primary rounded-lg py-2 px-4 ms-3"
+                    onPress={saveNewRoom}
+                  >
+                    <Text className="text-white">Save</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </TouchableWithoutFeedback>
@@ -288,7 +340,7 @@ export default function room() {
                 <Text className="text-gray-600 text-center mb-4">
                   Bạn có chắc chắn muốn xóa không gian{" "}
                   <Text className="font-bold text-red-500">
-                    {selectedRoom?.id}
+                    {selectedRoom?.room_code}
                   </Text>
                   ? Hành động này không thể hoàn tác
                 </Text>
