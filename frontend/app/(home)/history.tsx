@@ -30,8 +30,8 @@ export default function HistoryScreen() {
       });
       setHistory(sortedData);
       setLoading(false);
-    }, 1000);
-  }, []);
+    }, 500);
+  }, [history.length]);
 
   const renderHistoryItem = ({ item }: { item: HistoryItem }) => {
     const isChecked_out = item.status === "checked_out";

@@ -4,7 +4,6 @@ from datetime import datetime
 from app.models.booking import Booking, BookingStatus
 from app.models.checkin import CheckinLog
 from app.models.room import Room, RoomStatus
-from app.schemas.checkin_schema import CheckinReadSchema
 from app.observers.subject import event_subject
 
 class CheckinService:
@@ -20,8 +19,8 @@ class CheckinService:
 
         now = datetime.now()
         start_time = datetime.combine(booking.booking_date, booking.start_time)
-        # if now < start_time:
-        #     raise HTTPException(status.HTTP_400_BAD_REQUEST, "Chưa đến thời gian check-in")
+        if now < start_time:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Chưa đến thời gian check-in")
 
         log = CheckinLog(booking_id=booking_id, checkin_time=now)
         db.add(log)
@@ -47,9 +46,9 @@ class CheckinService:
         booking = db.query(Booking).filter(
             Booking.user_id == user_id,
             Booking.room_id == room.id,
-            Booking.booking_date == today,
-            Booking.start_time <= current_time,
-            Booking.end_time >= current_time,
+            # Booking.booking_date == today,
+            # Booking.start_time <= current_time,
+            # Booking.end_time >= current_time,
             Booking.status == BookingStatus.active
         ).first()
         if not booking:

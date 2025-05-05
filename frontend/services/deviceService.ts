@@ -13,10 +13,10 @@ export interface Device {
 const deviceService = {
   getAllDevices: async (): Promise<Device[]> => {
     try {
-      const response = await api.get("technician/devices");
+      const response = await api.get("technician/device");
       return response.data;
     } catch (error) {
-      console.error("Error fetching devices:", error);
+      console.warn("Error fetching devices:", error);
       throw error;
     }
   },

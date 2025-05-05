@@ -11,6 +11,10 @@ from app.observers.subject import event_subject
 class BookingService:
     @staticmethod
     def create_booking(db: Session, user_id: int, room_id: int, booking_date: date, start_time: time, end_time: time):
+        room = db.query(Room).filter(Room.id == room_id).first()
+        if not room:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Room not found.")
+
         conflict1 = db.query(Booking).filter(
             Booking.user_id == user_id,
             Booking.booking_date == booking_date,
@@ -70,11 +74,10 @@ class BookingService:
             event_subject.notify("auto_checkout", {"booking_id": booking.id})
 
         user_name = db.query(User.name).filter(User.id == user_id).scalar()
-        room_code = db.query(Room.room_code).filter(Room.id == room_id).scalar()
         return BookingReadSchema(
             id=booking.id,
             user_name=user_name,
-            room_code=room_code,
+            room_code=room.room_code,
             booking_date=booking_date,
             start_time=start_time,
             end_time=end_time,
@@ -95,6 +98,8 @@ class BookingService:
         room_dict = {room.id: room for room in rooms}
         for booking in bookings:
             room = room_dict.get(booking.room_id)
+            if room is None:
+                continue
             list_bookings.append(BookingReadSchema(
                 id=booking.id,
                 user_name=user.name,
@@ -149,9 +154,13 @@ class BookingService:
         user_ids = {booking.user_id for booking in bookings}
         users = db.query(User).filter(User.id.in_(user_ids)).all()
         user_dict = {user.id: user for user in users}
+
         for booking in bookings:
             room = room_dict.get(booking.room_id)
             user = user_dict.get(booking.user_id)
+            # Bỏ qua nếu không tìm thấy room hoặc user
+            if not room or not user:
+                continue
             list_bookings.append(BookingReadSchema(
                 id=booking.id,
                 user_name=user.name,
@@ -164,3 +173,30 @@ class BookingService:
             ))
         return list_bookings
 
+    @staticmethod
+    def get_active_bookings(db: Session, user_id: int):
+        bookings = db.query(Booking).filter(
+            Booking.user_id == user_id,
+            Booking.status.in_([BookingStatus.active, BookingStatus.checked_in])
+        ).all()
+        if not bookings:
+            return []
+
+        list_bookings = []
+        user = db.query(User).filter(User.id == user_id).first()
+        room_ids = {booking.room_id for booking in bookings}
+        rooms = db.query(Room).filter(Room.id.in_(room_ids)).all()
+        room_dict = {room.id: room for room in rooms}
+        for booking in bookings:
+            room = room_dict.get(booking.room_id)
+            list_bookings.append(BookingReadSchema(
+                id=booking.id,
+                user_name=user.name,
+                room_code=room.room_code,
+                booking_date=booking.booking_date,
+                start_time=booking.start_time,
+                end_time=booking.end_time,
+                status=booking.status,
+                created_at=booking.created_at
+            ))
+        return list_bookings

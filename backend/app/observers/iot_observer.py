@@ -1,7 +1,7 @@
 from app.db.session import SessionLocal
 from app.observers.subject import Observer
 from app.observers.singleton import SingletonMeta
-from app.models.room import Room, SensorStatus
+from app.models.room import Room
 from app.models.device import Device, DeviceStatus
 
 class IotObserver(Observer, metaclass=SingletonMeta):
@@ -16,12 +16,12 @@ class IotObserver(Observer, metaclass=SingletonMeta):
         db = SessionLocal()
         try:
             room = db.query(Room).filter(Room.id == room_id).first()
-            if room and room.sensor == SensorStatus.active:
+            if room:
                 light = db.query(Device).filter(
-                    Device.room_id == room_id,
+                    Device.room_id == room.id,
                     Device.type == "light"
                 ).first()
-                if light and light.status == DeviceStatus.off:
+                if light:
                     light.status = DeviceStatus.on
                     db.commit()
         finally:

@@ -9,8 +9,8 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
+import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { bookingService, checkService } from "@/services";
 
@@ -35,9 +35,11 @@ export default function booked() {
   );
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchBookings();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchBookings();
+    }, [])
+  );
 
   const fetchBookings = async () => {
     try {
