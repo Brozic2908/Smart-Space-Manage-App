@@ -11,7 +11,7 @@ class RoomService:
 
     @staticmethod
     def get_available_rooms(db: Session, booking_date: date, start_time: time, end_time: time):
-        if start_time <= end_time:
+        if start_time >= end_time:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid time range.")
 
         conflict = db.query(Booking.room_id).filter(
