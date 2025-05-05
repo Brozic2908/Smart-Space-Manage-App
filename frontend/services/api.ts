@@ -48,6 +48,7 @@ api.interceptors.response.use(
 
         // Đăng xuất người dùng
         await AsyncStorage.removeItem("auth_token");
+        await AsyncStorage.removeItem("role");
 
         // Redirect to login screen would happen in component
       }

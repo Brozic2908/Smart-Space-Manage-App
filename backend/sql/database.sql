@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS checkin_logs (
     FOREIGN KEY (booking_id) REFERENCES bookings(id)
 );
 
--- Insert mock data for users table
+-- Insert mock data for users table password for testing : 12345678
 INSERT INTO users (name, email, role, password_hash) VALUES
 ('Nguyen Van A', 'stu@gmail.com', 'student', '$2b$12$YMjZfK3N7v2vueR2P40qYu7vyCcaTjY02PQfzoiXVZo5TQJkcSwUS'),
 ('Le Van C', 'lec@gmail.com', 'lecturer', '$2b$12$YMjZfK3N7v2vueR2P40qYu7vyCcaTjY02PQfzoiXVZo5TQJkcSwUS'),
