@@ -150,7 +150,7 @@ export default function devices() {
       const devicesData = await deviceService.getAllDevices();
       setDevices(devicesData);
     } catch (err) {
-      console.error("Error loading devices:", err);
+      console.warn("Error loading devices:", err);
       setError("Failed to load devices");
     } finally {
       setLoading(false);
@@ -171,7 +171,7 @@ export default function devices() {
     try {
       await loadData();
     } catch (err) {
-      console.error("Error refreshing devices:", err);
+      console.warn("Error refreshing devices:", err);
       setError("Không thể làm mới dữ liệu. Vui lòng thử lại.");
     } finally {
       setRefreshing(false);

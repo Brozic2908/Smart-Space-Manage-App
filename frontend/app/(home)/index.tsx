@@ -44,14 +44,18 @@ export default function HomeScreen() {
   // Set initial times
   useEffect(() => {
     // Set start time to current hour
-    const start = new Date();
-    start.setMinutes(0);
-    start.setSeconds(0);
+    const now = new Date();
+    now.setMinutes(0);
+    now.setSeconds(0);
+    setStartTime(now);
+
+    const start = new Date(now);
+    start.setHours(start.getHours() + 1);
     setStartTime(start);
 
     // Set end time to 3 hours later
     const end = new Date(start);
-    end.setHours(end.getHours() + 3);
+    end.setHours(end.getHours() + 2);
     setEndTime(end);
   }, []);
 
@@ -95,7 +99,7 @@ export default function HomeScreen() {
       );
       setFormSubmitted(true);
     } catch (err: any) {
-      console.error("Error fetching rooms:", err);
+      console.warn("Error fetching rooms:", err);
       setError(err.message || "Không thể tải danh sách phòng");
     } finally {
       setLoading(false);

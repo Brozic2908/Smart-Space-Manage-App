@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Modal,
   TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -109,9 +110,18 @@ export default function RoomDetailScreen() {
       await bookingService.bookingRoom(data);
       setShowConfirmModal(false);
       router.push("/(home)/booked");
-    } catch (error) {
+    } catch (error: any) {
       console.warn("Error booking room:", error);
-      setError("Lỗi khi đặt phòng. Thời gian phải xảy ra trong tương lai");
+
+      if (error.response && error.response.data && error.response.data.detail) {
+        // Lỗi do backend trả về
+        Alert.alert("Lỗi Đặt phòng", error.response.data.detail);
+        setError(error.response.data.detail);
+      } else {
+        Alert.alert("Lỗi Đặt phòng", "Lỗi khi đặt phòng. Vui lòng thử lại sau");
+        // Lỗi khác (mạng, không phản hồi, v.v.)
+        setError("Lỗi khi đặt phòng. Vui lòng thử lại sau");
+      }
     } finally {
       setLoading(false);
     }

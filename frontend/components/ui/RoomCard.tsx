@@ -57,61 +57,39 @@ const RoomCard = ({
   // Map room types to proper display names
   const getDisplayType = (type: string) => {
     const typeMap: Record<string, string> = {
-      individual: "Phòng cá nhân",
-      group: "Phòng nhóm",
-      mentoring: "Phòng hướng dẫn",
+      individual: "Individual",
+      group: "Group",
+      mentoring: "Mentoring",
     };
 
     return typeMap[type.toLowerCase()] || type;
   };
 
-  // Get status color
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "available":
-        return {
-          bg: "bg-green-100",
-          text: "text-green-600",
-        };
-      case "in_use":
-        return {
-          bg: "bg-red-100",
-          text: "text-red-700",
-        };
-      case "maintenance":
-        return {
-          bg: "bg-yellow-100",
-          text: "text-yellow-700",
-        };
-      default:
-        return {
-          bg: "bg-gray-100",
-          text: "text-gray-700",
-        };
-    }
-  };
-
-  const statusStyle = getStatusColor(status);
-
   return (
-    <TouchableOpacity
-      className={`flex-row items-center bg-white rounded-lg p-4 mb-3 shadow-sm ${
-        status !== "available" ? "opacity-70" : ""
-      }`}
-      onPress={navigateToRoomDetails}
-      disabled={status !== "available"}
-    >
-      <View className="w-14 h-14 bg-blue-100 rounded-md justify-center items-center">
-        <Ionicons name="business-outline" size={26} color="#0050B3" />
-      </View>
-      <View className="flex-1 ml-3">
-        <Text className="font-medium text-lg">{id}</Text>
-        <Text className="text-xs text-gray-400 mt-0.5">{location}</Text>
-      </View>
-      <Text className="text-sm font-bold text-primary mt-0.5">
-        {getDisplayType(type)}
-      </Text>
-    </TouchableOpacity>
+    <>
+      {status === "available" ? (
+        <TouchableOpacity
+          className={`flex-row items-center bg-white rounded-lg p-4 mb-3 shadow-sm ${
+            status !== "available" ? "opacity-70" : ""
+          }`}
+          onPress={navigateToRoomDetails}
+          disabled={status !== "available"}
+        >
+          <View className="w-14 h-14 bg-blue-100 rounded-md justify-center items-center">
+            <Ionicons name="business-outline" size={26} color="#0050B3" />
+          </View>
+          <View className="flex-1 ml-3">
+            <Text className="font-medium text-lg">{id}</Text>
+            <Text className="text-sm text-gray-400 mt-0.5">{location}</Text>
+          </View>
+          <Text className="text-base font-bold text-primary mt-0.5">
+            {getDisplayType(type)}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <></>
+      )}
+    </>
   );
 };
 

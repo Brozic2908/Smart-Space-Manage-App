@@ -21,8 +21,14 @@ export default function HistoryScreen() {
   useEffect(() => {
     // Simulate API call
     setTimeout(async () => {
-      const res = await bookingService.getAllHistoryBookings();
-      setHistory(res);
+      const data = await bookingService.getAllHistoryBookings();
+      // Sort bookings by created_at (newest first)
+      const sortedData = [...data].sort((a, b) => {
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      });
+      setHistory(sortedData);
       setLoading(false);
     }, 1000);
   }, []);

@@ -89,7 +89,9 @@ export default function booked() {
       fetchBookings(); // Refresh the list
     } catch (err) {
       console.warn("Error checking in:", err);
-      setError("Không thể check-in. Vui lòng thử lại sau.");
+      setError(
+        "Không thể check-in. Chưa đến thời gian check-in .Vui lòng thử lại sau."
+      );
     } finally {
       setLoading(false);
     }
