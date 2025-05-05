@@ -102,7 +102,7 @@ export default function RoomDetailScreen() {
       }
 
       const data = {
-        room_id: room.id,
+        room_code: room.room_code,
         booking_date: params.bookingDate,
         start_time: params.startTime,
         end_time: params.endTime,
